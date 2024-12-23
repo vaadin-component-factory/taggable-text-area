@@ -39,3 +39,13 @@ vcf-template-demo/src/main/bundles
 .classpath
 .project
 .idea
+
+node_modules
+generated
+
+tsconfig.json
+types.d.ts
+webpack.config.js
+webpack.generated.js
+package.json
+package-lock.json

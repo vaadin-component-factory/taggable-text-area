@@ -127,7 +127,6 @@ public class TaggableTextArea<T> extends TextArea {
 		popup.setOpened(true);
 		this.getElement().appendChild(popup.getElement());
 		popup.setCloseOnClick(true);
-		popup.getElement().executeJs("return;").then((ev)->selector.getElement().executeJs("this.scrollIntoView({ behavior: \"auto\", block: \"start\", inline: \"nearest\" })"));;
 	}
 
 
@@ -226,7 +225,7 @@ public class TaggableTextArea<T> extends TextArea {
 	protected AbstractField<?,T> createSelector() {
 		ListBox<T> listBox = new ListBox<>();
 		listBox.setItems(this.items);
-		listBox.getElement().executeJs("this.focus()");
+		listBox.getElement().executeJs("return;").then(ev->listBox.getElement().executeJs("this.focus();"));
 		listBox.setRenderer(new ComponentRenderer<>(item -> {
 		    HorizontalLayout row = new HorizontalLayout();
 		    row.setAlignItems(FlexComponent.Alignment.CENTER);

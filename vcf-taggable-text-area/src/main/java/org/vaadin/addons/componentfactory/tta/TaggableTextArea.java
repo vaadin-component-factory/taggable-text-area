@@ -20,9 +20,9 @@ import java.util.UUID;
 import org.jsoup.Jsoup;
 
 import com.vaadin.componentfactory.Popup;
-import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasValueAndElement;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.listbox.ListBox;
@@ -69,10 +69,36 @@ public class TaggableTextArea<T> extends TextArea {
 				+ "    const marker = document.createElement(\"span\");\n"
 				+ "    marker.id = \"mention-marker\";\n"
 				+ "    marker.textContent = \"@\";\n"
-				+ "    marker.style.color = \"blue\";\n"
+				+ "    marker.style.backgroundColor = \"var(--lumo-contrast-10pct)\";\n"
+				+ "    marker.style.color = \"var(--lumo-primary-text-color)\";\n"
 				+ "    range.insertNode(marker);\n"
 				+ "    this.parentNode.$server.updateContent(this.innerHTML);\n"
 				+ "    this.parentNode.$server.showPopup();\n"
+				+ "  }\n"
+				+ "});");
+		content.getElement().executeJs(
+				"this.addEventListener(\"keydown\", (event) => {\n"
+				+ "  if (event.keyCode === 8) {\n"
+				+ "    debugger;const selection = window.getSelection();\n"
+				+ "        if (selection.rangeCount > 0) {\n"
+				+ "            const range = selection.getRangeAt(0);\n"
+				+ "            const currentNode = range.startContainer;\n"
+				+ "            const currentOffset = range.startOffset;\n"
+				+ "            if (currentNode.nodeType === Node.TEXT_NODE) {\n"
+				+ "                const parentNode = currentNode.parentNode;\n"
+				+ "                if (parentNode && parentNode.nodeName === \"SPAN\" && parentNode.className === \"mention-highlight\") {\n"
+				+ "                    parentNode.remove();\n"
+				+ "                    event.preventDefault();\n"
+				+ "                }\n"
+				+ "            }\n"
+				+ "            if (currentNode.nodeType === Node.ELEMENT_NODE && currentOffset === 0) {\n"
+				+ "                const previousNode = currentNode.previousSibling;\n"
+				+ "                if (previousNode && previousNode.nodeName === \"SPAN\" && previousNode.className === \"mention-highlight\") {\n"
+				+ "                    previousNode.remove();\n"
+				+ "                    event.preventDefault();\n"
+				+ "                }\n"
+				+ "            }\n"
+				+ "        }\n"
 				+ "  }\n"
 				+ "});");
 		this.items = items;
@@ -118,11 +144,12 @@ public class TaggableTextArea<T> extends TextArea {
 	void showPopup() {
 		Popup popup = new Popup();
 		popup.setFor("mention-marker");
-		AbstractField<?,T> selector = createSelector();
-		popup.add(selector);
+		HasValueAndElement<?,T> selector = createSelector();
+		popup.add(selector.getElement().getComponent().get());
 		selector.addValueChangeListener(ev->{
 			TaggableTextArea.this.replaceTag(labelGenerator.apply(ev.getValue()));
-			popup.getElement().removeFromParent();
+			popup.setOpened(false);
+			popup.getElement().executeJs("return;").then(ev2->popup.getElement().removeFromParent());
 		});
 		popup.setOpened(true);
 		this.getElement().appendChild(popup.getElement());
@@ -213,7 +240,7 @@ public class TaggableTextArea<T> extends TextArea {
 	 * @return
 	 */
 	protected String decorateWithSpan(String label) {
-		return "<span class=\"mention-highlight\" style=\"color: blue;\" id=\"span-" + UUID.randomUUID() + "\">" + label + "</span>";
+		return "<span class=\"mention-highlight\" style=\"background-color:var(--lumo-contrast-10pct);color:var(--lumo-primary-text-color)\" id=\"span-" + UUID.randomUUID() + "\">" + label + "</span>";
 	}
 	
 	/**
@@ -222,7 +249,7 @@ public class TaggableTextArea<T> extends TextArea {
 	 * It can be overwritten so it uses a different component for selecting the tags.
 	 * @return
 	 */
-	protected AbstractField<?,T> createSelector() {
+	protected HasValueAndElement<?,T> createSelector() {
 		ListBox<T> listBox = new ListBox<>();
 		listBox.setItems(this.items);
 		listBox.getElement().executeJs("return;").then(ev->listBox.getElement().executeJs("this.focus();"));
@@ -255,7 +282,8 @@ public class TaggableTextArea<T> extends TextArea {
 				+ " span.textContent = $0;\n"
 				+ " span.className = \"mention-highlight\";\n"
 				+ " span.id = \"span-" + UUID.randomUUID() + "\";\n"
-				+ " span.style.color = \"blue\";\n"
+				+ " span.style.backgroundColor = \"var(--lumo-contrast-10pct)\";\n"
+				+ " span.style.color = \"var(--lumo-primary-text-color)\";\n"
 				+ " marker.replaceWith(span);\n"
 				+ " const cleanTextNode = document.createElement(\"div\");\n"
 				+ " cleanTextNode.innerHTML = '&nbsp;';\n"

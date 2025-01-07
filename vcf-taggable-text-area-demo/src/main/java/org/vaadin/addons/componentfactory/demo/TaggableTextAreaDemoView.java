@@ -22,22 +22,31 @@ import java.util.stream.Collectors;
 
 import org.vaadin.addons.componentfactory.tta.TaggableTextArea;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Focusable;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.customfield.CustomField;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.selection.SingleSelect;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.demo.DemoView;
 import com.vaadin.flow.router.Route;
 
@@ -66,8 +75,8 @@ public class TaggableTextAreaDemoView extends DemoView {
         // source-example-heading: Grid demo for TaggableTextArea
     	Grid<User> usersGrid = new Grid<>();
     	usersGrid.setItems(Arrays.asList(
-				new User("John Doe", "jdoe@example.com", "", LocalDate.now()),
-				new User("Jane Doe", "jane@example.com", "", LocalDate.now())));
+				new User("John Doe", "jdoe@example.com", "", LocalDate.now(),"https://randomuser.me/api/portraits/men/77.jpg"),
+				new User("Jane Doe", "jane@example.com", "", LocalDate.now(),"https://randomuser.me/api/portraits/women/43.jpg")));
     	Editor<User> editor = usersGrid.getEditor();
     	Grid.Column<User> nameColumn = usersGrid.addColumn(User::getName).setHeader("Name");
     	Grid.Column<User> emailColumn = usersGrid.addColumn(User::getEmail).setHeader("Email");
@@ -167,6 +176,7 @@ public class TaggableTextAreaDemoView extends DemoView {
         		+ "<div>id eros. Nunc vulputate justo vel sagittis ultrices. Quisque vehicula lorem in orci elementum interdum. </div>"
         		+ "<div>In in sem quis dolor convallis aliquet sed fermentum mi.</div>");
         tta.setTagPopupFor(item->item.getName().equals("John Doe"));
+        
         showUsedTags(tta.obtainUsedTags());
         Checkbox cb = new Checkbox("Readonly");
         cb.addValueChangeListener(ev -> tta.setReadOnly(cb.getValue()));
@@ -179,21 +189,24 @@ public class TaggableTextAreaDemoView extends DemoView {
 	private TaggableTextArea<User> createTaggableTextArea() {
 		TaggableTextArea<User> tta = new TaggableTextArea<User>(
         		Arrays.asList(
-        				new User("John Doe", "jdoe@example.com", "", LocalDate.now()),
-        				new User("Jane Doe", "jane@example.com", "", LocalDate.now()))) {
+        				new User("John Doe", "jdoe@example.com", "", LocalDate.now(),"https://randomuser.me/api/portraits/men/77.jpg"),
+        				new User("Jane Doe", "jane@example.com", "", LocalDate.now(),"https://randomuser.me/api/portraits/women/43.jpg"))) {
         	@Override
         	protected Component createTagPopupContent(User relatedItem) {
         		return new Button("Show user information", ev-> {
         			Notification.show("User: " + relatedItem.getName() + ", Email: " + relatedItem.getEmail());
         		});
         	}
+        	@Override
+			protected AbstractField<?, User> createSelector() {
+				return TaggableTextAreaDemoView.createSelector(this.items);
+			}
         };
         tta.setWidthFull();
 		return tta;
 	}
 
-   
-    private void showUsedTags(List<User> users) {
+	private void showUsedTags(List<User> users) {
     	Notification.show("Users: " + users.stream().map(item -> item.getName() + ", " + item.getEmail()).collect(Collectors.joining(",")));
 	}
 
@@ -212,5 +225,106 @@ public class TaggableTextAreaDemoView extends DemoView {
         message.getStyle().set("whiteSpace", "pre");
         return message;
     }
+    
+    public static class FilterListBoxSelector extends CustomField<User> implements SingleSelect<CustomField<User>, User> {
+    	
+    	TextField filter = new TextField();
+    	ListBox<User> listBox = new ListBox<>();
+    	
+    	public FilterListBoxSelector(List<User> items) {
+    		listBox.setItems(items);
+    		filter.getElement().executeJs("return;").then(ev->filter.getElement().executeJs("this.focus();"));
+    		listBox.setRenderer(new ComponentRenderer<>(item -> {
+    		    HorizontalLayout row = new HorizontalLayout();
+    		    row.setAlignItems(FlexComponent.Alignment.CENTER);
+
+    		    Span name = new Span(""+item);
+
+    		    VerticalLayout column = new VerticalLayout(name);
+    		    column.setPadding(false);
+    		    column.setSpacing(false);
+
+    		    row.add(column);
+    		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
+    		    return row;
+    		}));
+    		listBox.setRenderer(new ComponentRenderer<>(person -> {
+    		    HorizontalLayout row = new HorizontalLayout();
+    		    row.setAlignItems(FlexComponent.Alignment.CENTER);
+
+    		    Avatar avatar = new Avatar();
+    		    avatar.setName(person.getName());
+    		    avatar.setImage(person.getPictureUrl());
+
+    		    Span name = new Span(person.getName());
+    		    Span profession = new Span(person.getEmail());
+    		    profession.getStyle()
+    		        .set("color", "var(--lumo-secondary-text-color)")
+    		        .set("font-size", "var(--lumo-font-size-s)");
+
+    		    VerticalLayout column = new VerticalLayout(name, profession);
+    		    column.setPadding(false);
+    		    column.setSpacing(false);
+
+    		    row.add(avatar, column);
+    		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
+    		    return row;
+    		}));
+    		listBox.setSizeFull();
+    		filter.setSizeFull();
+    		filter.setValueChangeMode(ValueChangeMode.EAGER);
+    		filter.addValueChangeListener(e -> {
+    			List<User> filteredItems = items.stream()
+    					.filter(item -> item.getName().toLowerCase().contains(filter.getValue().toLowerCase()))
+    					.collect(Collectors.toList());
+    			listBox.setItems(filteredItems);
+    			if (!filteredItems.isEmpty()) {
+    				listBox.setValue(filteredItems.get(0));
+    			}
+    		});
+    		filter.getElement().executeJs("this.addEventListener('keydown', (event) => {"
+    				+ "if (event.key === \"ArrowDown\") {\n"
+    				+ "  debugger;\n"
+    				+ "  $0.focus({ preventScroll: true });\n"
+    				+ " }\n"
+    				+ "});",listBox.getElement());
+    		filter.addKeyPressListener(Key.ENTER, ev->{
+    			this.setValue(listBox.getValue());
+    		});
+    		listBox.addValueChangeListener(ev->{
+    			if (ev.isFromClient()) {
+        			this.setValue(listBox.getValue());
+    			}
+    		});
+    		VerticalLayout layout = new VerticalLayout(filter,listBox);
+    		layout.setSpacing(false);
+    		layout.setPadding(false);
+    		layout.getStyle().set("margin", "var(--lumo-space-xs)");
+    		layout.setWidth("auto");
+    		layout.setHeight("auto");
+    		add(layout);
+		}
+    	
+    	@Override
+    	public User getValue() {
+    		return listBox.getValue();
+    	}
+
+		@Override
+		protected User generateModelValue() {
+			return listBox.getValue();
+		}
+
+		@Override
+		protected void setPresentationValue(User newPresentationValue) {
+			listBox.setValue(newPresentationValue);
+		}
+    	
+    }
+    
+    protected static AbstractField<?, User> createSelector(List<User> items) {
+		return new FilterListBoxSelector(items);
+	}
+    
     // end-source-example
 }

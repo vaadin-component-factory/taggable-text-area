@@ -77,7 +77,7 @@ public class TaggableTextArea<T> extends TextArea {
 		content.getElement().executeJs(
 				"this.addEventListener(\"keydown\", (event) => {\n"
 				+ "  if (event.keyCode === 8) {\n"
-				+ "    debugger;const selection = window.getSelection();\n"
+				+ "    const selection = window.getSelection();\n"
 				+ "        if (selection.rangeCount > 0) {\n"
 				+ "            const range = selection.getRangeAt(0);\n"
 				+ "            const currentNode = range.startContainer;\n"

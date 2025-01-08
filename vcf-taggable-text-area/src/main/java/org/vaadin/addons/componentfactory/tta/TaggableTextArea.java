@@ -69,8 +69,6 @@ public class TaggableTextArea<T> extends TextArea {
 				+ "    const marker = document.createElement(\"span\");\n"
 				+ "    marker.id = \"mention-marker\";\n"
 				+ "    marker.textContent = \"@\";\n"
-				+ "    marker.style.backgroundColor = \"var(--lumo-contrast-10pct)\";\n"
-				+ "    marker.style.color = \"var(--lumo-primary-text-color)\";\n"
 				+ "    range.insertNode(marker);\n"
 				+ "    this.parentNode.$server.updateContent(this.innerHTML);\n"
 				+ "    this.parentNode.$server.showPopup();\n"

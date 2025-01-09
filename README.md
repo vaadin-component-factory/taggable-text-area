@@ -1,16 +1,16 @@
-# Template Add-on for Vaadin Flow
+# Taggable Text Area for Vaadin 14
 
-This project is a template for building new Vaadin Flow add-ons.
+Extension of text area component that supports tagging functionality. Users can insert tags by typing a "@" character to trigger a popup for selecting tags. Tags are rendered as clickable elements that can open popups for additional to add aditional information.
 
 This component is part of Vaadin Component Factory.
 
-## Features
+## Compatibility
 
-* List the features of the component here
+- Version 1.x.x -> Vaadin 14
 
 ## Running the component demo
 Run from the command line:
-- `mvn  -pl vcf-template-demo -Pwar install jetty:run`
+- `mvn  -pl vcf-taggable-text-area-demo -Pwar install jetty:run`
 
 Then navigate to `http://localhost:8080/`
 
@@ -31,13 +31,13 @@ add the following dependency to your `pom.xml`:
 ```
 <dependency>
     <groupId>org.vaadin.addons.componentfactory</groupId>
-    <artifactId>vcf-template</artifactId>
+    <artifactId>vcf-taggable-text-area</artifactId>
     <version>${component.version}</version>
 </dependency>
 ```
 
 ## How to Use
-Add code samples in this section
+See examples on how to use at [demo](https://github.com/vaadin-component-factory/taggable-text-area/blob/initial-implementation/vcf-taggable-text-area-demo/src/main/java/org/vaadin/addons/componentfactory/demo/TaggableTextAreaDemoView.java).
 
 ## Flow documentation
 Documentation for Vaadin Flow can be found in [Flow documentation](https://vaadin.com/docs/latest/flow).

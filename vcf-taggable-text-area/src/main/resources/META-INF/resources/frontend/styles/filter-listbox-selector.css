@@ -1,0 +1,3 @@
+.taggable-textarea-filter-listbox-selector-listbox vaadin-item::before {
+	display:none;
+}

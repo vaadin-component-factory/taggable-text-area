@@ -20,24 +20,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.vaadin.addons.componentfactory.tta.FilterListBoxSelector;
 import org.vaadin.addons.componentfactory.tta.TaggableTextArea;
 
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Focusable;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
-import com.vaadin.flow.component.customfield.CustomField;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -45,8 +43,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.selection.SingleSelect;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.demo.DemoView;
 import com.vaadin.flow.router.Route;
 
@@ -225,30 +221,12 @@ public class TaggableTextAreaDemoView extends DemoView {
         message.getStyle().set("whiteSpace", "pre");
         return message;
     }
+
     
-    public static class FilterListBoxSelector extends CustomField<User> implements SingleSelect<CustomField<User>, User> {
-    	
-    	TextField filter = new TextField();
-    	ListBox<User> listBox = new ListBox<>();
-    	
-    	public FilterListBoxSelector(List<User> items) {
-    		listBox.setItems(items);
-    		filter.getElement().executeJs("return;").then(ev->filter.getElement().executeJs("this.focus();"));
-    		listBox.setRenderer(new ComponentRenderer<>(item -> {
-    		    HorizontalLayout row = new HorizontalLayout();
-    		    row.setAlignItems(FlexComponent.Alignment.CENTER);
-
-    		    Span name = new Span(""+item);
-
-    		    VerticalLayout column = new VerticalLayout(name);
-    		    column.setPadding(false);
-    		    column.setSpacing(false);
-
-    		    row.add(column);
-    		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
-    		    return row;
-    		}));
-    		listBox.setRenderer(new ComponentRenderer<>(person -> {
+    protected static AbstractField<?, User> createSelector(List<User> items) {
+    	FilterListBoxSelector<User> selector = new FilterListBoxSelector<>(items);
+    	selector.setFilterExpression((item,filter) -> item.getName().toLowerCase().contains(filter.toLowerCase()));
+    	selector.setRenderer(new ComponentRenderer<>(person -> {
     		    HorizontalLayout row = new HorizontalLayout();
     		    row.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -270,60 +248,8 @@ public class TaggableTextAreaDemoView extends DemoView {
     		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
     		    return row;
     		}));
-    		listBox.setSizeFull();
-    		filter.setSizeFull();
-    		filter.setValueChangeMode(ValueChangeMode.EAGER);
-    		filter.addValueChangeListener(e -> {
-    			List<User> filteredItems = items.stream()
-    					.filter(item -> item.getName().toLowerCase().contains(filter.getValue().toLowerCase()))
-    					.collect(Collectors.toList());
-    			listBox.setItems(filteredItems);
-    			if (!filteredItems.isEmpty()) {
-    				listBox.setValue(filteredItems.get(0));
-    			}
-    		});
-    		filter.getElement().executeJs("this.addEventListener('keydown', (event) => {"
-    				+ "if (event.key === \"ArrowDown\") {\n"
-    				+ "  debugger;\n"
-    				+ "  $0.focus({ preventScroll: true });\n"
-    				+ " }\n"
-    				+ "});",listBox.getElement());
-    		filter.addKeyPressListener(Key.ENTER, ev->{
-    			this.setValue(listBox.getValue());
-    		});
-    		listBox.addValueChangeListener(ev->{
-    			if (ev.isFromClient()) {
-        			this.setValue(listBox.getValue());
-    			}
-    		});
-    		VerticalLayout layout = new VerticalLayout(filter,listBox);
-    		layout.setSpacing(false);
-    		layout.setPadding(false);
-    		layout.getStyle().set("margin", "var(--lumo-space-xs)");
-    		layout.setWidth("auto");
-    		layout.setHeight("auto");
-    		add(layout);
-		}
     	
-    	@Override
-    	public User getValue() {
-    		return listBox.getValue();
-    	}
-
-		@Override
-		protected User generateModelValue() {
-			return listBox.getValue();
-		}
-
-		@Override
-		protected void setPresentationValue(User newPresentationValue) {
-			listBox.setValue(newPresentationValue);
-		}
-    	
-    }
-    
-    protected static AbstractField<?, User> createSelector(List<User> items) {
-		return new FilterListBoxSelector(items);
+		return selector;
 	}
     
     // end-source-example

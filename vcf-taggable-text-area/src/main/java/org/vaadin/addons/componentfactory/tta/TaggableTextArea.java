@@ -25,7 +25,6 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValueAndElement;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -248,10 +247,10 @@ public class TaggableTextArea<T> extends TextArea {
 	 * @return
 	 */
 	protected HasValueAndElement<?,T> createSelector() {
-		ListBox<T> listBox = new ListBox<>();
-		listBox.setItems(this.items);
-		listBox.getElement().executeJs("return;").then(ev->listBox.getElement().executeJs("this.focus();"));
-		listBox.setRenderer(new ComponentRenderer<>(item -> {
+		FilterListBoxSelector<T> selector = new FilterListBoxSelector<>(this.items);
+		selector.getElement().executeJs("return;").then(ev->selector.getElement().executeJs("this.focus();"));
+		selector.setFilterExpression((item, filterText) -> item.toString().toLowerCase().contains(filterText.toLowerCase()));
+		selector.setRenderer(new ComponentRenderer<>(item -> {
 		    HorizontalLayout row = new HorizontalLayout();
 		    row.setAlignItems(FlexComponent.Alignment.CENTER);
 
@@ -265,7 +264,7 @@ public class TaggableTextArea<T> extends TextArea {
 		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
 		    return row;
 		}));
-		return listBox;
+		return selector;
 	}
 	
 	/**

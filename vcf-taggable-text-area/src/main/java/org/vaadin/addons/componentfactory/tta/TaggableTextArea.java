@@ -39,8 +39,12 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableFunction;
 
 /**
- * Add-on that provides a modified text area that supports the usage of tags that can be selected from a popup
- *
+ * A text area component that supports tagging functionality. Users can insert tags
+ * (e.g., mentions) by typing a special character (such as "@") to trigger a popup 
+ * for selecting tags. Tags are rendered as clickable elements with popups for additional 
+ * information or actions. 
+ * 
+ * @param <T> The type of items that can be used as tags.
  */
 @SuppressWarnings("serial")
 public class TaggableTextArea<T> extends TextArea {
@@ -50,6 +54,11 @@ public class TaggableTextArea<T> extends TextArea {
 	private SerializableFunction<T,String> labelGenerator = item->""+item;
 	private SerializableFunction<T,Boolean> tagPopupVisibilityFunction = (item)->true;
 	
+    /**
+     * Constructs a new TaggableTextArea component with a list of items that can be used as tags.
+     * 
+     * @param items the list of items to be available for tagging.
+     */
 	public TaggableTextArea(List<T> items) {
 		content.getElement().setAttribute("contenteditable", true);
 		content.getElement().setAttribute("slot", "textarea");
@@ -106,11 +115,13 @@ public class TaggableTextArea<T> extends TextArea {
 				+ "});");
 		this.items = items;
 	}
-	
-	/**
-	 * Process the value finding existing tags and decorates them with the span that will trigger the tag popup
-	 * @param value
-	 */
+
+    /**
+     * Process the value finding existing tags and decorates them with the span that will trigger
+     * the tag popup
+     * 
+     * @param value value the text content to process
+     */
 	void processAndSetValue(String value) {
 		for (T item : items) {
 			String itemLabel = labelGenerator.apply(item);
@@ -126,8 +137,9 @@ public class TaggableTextArea<T> extends TextArea {
 	}
 	
 	/**
-	 * Updates the value of the component after the span has been created from the client side
-	 * @param htmlContent
+	 * Updates the value of the component after the span has been created from the client side.
+	 * 
+	 * @param htmlContent the updated HTML content
 	 */
 	@ClientCallable
 	void updateContent(String htmlContent) {
@@ -140,9 +152,9 @@ public class TaggableTextArea<T> extends TextArea {
 		processAndSetValue(value);
 	}
 
-	/**
-	 * Shows the popup for selecting the tag after the at key was pressed from the client side
-	 */
+    /**
+     * Shows the popup for selecting the tag after the at key was pressed from the client side.
+     */
 	@ClientCallable
 	void showPopup() {
 		Popup popup = new Popup();
@@ -159,12 +171,11 @@ public class TaggableTextArea<T> extends TextArea {
 		popup.setCloseOnClick(true);
 	}
 
-
 	/**
-	 * Shows the popup that will be shown after the tag was clicked
+	 * Shows the popup that will be shown after the tag was clicked.
 	 * 
-	 * @param tagId
-	 * @param tagName
+	 * @param tagId   the ID of the tag element
+     * @param tagName the name of the tag
 	 */
 	@ClientCallable
 	void showTagPopup(String tagId, String tagName) {
@@ -205,23 +216,32 @@ public class TaggableTextArea<T> extends TextArea {
 				});;
 	}
 	
-	/**
-	 * Supplier to decide to show the tag popup depending on the item
-	 */
+    /**
+     * Supplier to decide to show the tag popup depending on the item.
+     * 
+     * @param tagPopupVisibilityFunction a function to determine whether the popup should be visible
+     *        for a given item
+     */
 	public void setTagPopupFor(SerializableFunction<T,Boolean> tagPopupVisibilityFunction) {
 		this.tagPopupVisibilityFunction  = tagPopupVisibilityFunction;
 	}
 	
-	/**
-	 * Shows a component that will be used as the popup content after the tag was clicked. By default
-	 * it will show a simple span with the tag converted to string, should be overwritten
-	 * @param relatedItem
-	 * @return
-	 */
+    /**
+     * Shows a component that will be used as the popup content after the tag was clicked. By
+     * default it will show a simple span with the tag converted to string, should be overwritten.
+     * 
+     * @param relatedItem the related item 
+     * @return the component used as popup content
+     */
 	protected Component createTagPopupContent(T relatedItem) {
 		return new Span(""+relatedItem);
 	}
 
+    /**
+     * Returns a list of items that are currently used as tags in the text.
+     * 
+     * @return a list of used tags
+     */
 	public List<T> obtainUsedTags() {
 		List<T> result = new ArrayList<T>();
 		String content = this.getValue();
@@ -235,23 +255,26 @@ public class TaggableTextArea<T> extends TextArea {
 		}
 		return result;
 	}
-	
-	/**
-	 * Decorates the label with the span that can be styled to highlight the tag. It can be also overwritten, but
-	 * it should always contain a unique id so the popup can be opened in the correct position
-	 * @param label
-	 * @return
-	 */
+
+    /**
+     * Decorates the label with the span that can be styled to highlight the tag. It can be also
+     * overwritten, but it should always contain a unique id so the popup can be opened in the
+     * correct position.
+     * 
+     * @param label the label to be decorated
+     * @return the decorated HTML string
+     */
 	protected String decorateWithSpan(String label) {
 		return "<span class=\"mention-highlight\" style=\"background-color:var(--lumo-contrast-10pct);color:var(--lumo-primary-text-color)\" id=\"span-" + UUID.randomUUID() + "\">" + label + "</span>";
 	}
 	
-	/**
-	 * Creates the selector field that will be shown inside the popup to select the tag. By default
-	 * it will return a listbox containing the items converted to string with the toString() method.
-	 * It can be overwritten so it uses a different component for selecting the tags.
-	 * @return
-	 */
+    /**
+     * Creates the selector field that will be shown inside the popup to select the tag. By default
+     * it will return a listbox containing the items converted to string with the toString() method.
+     * It can be overwritten so it uses a different component for selecting the tags.
+     * 
+     * @return the selector component
+     */
 	protected HasValueAndElement<?,T> createSelector() {
 		FilterListBoxSelector<T> selector = new FilterListBoxSelector<>(this.items);
 		selector.getElement().executeJs("return;").then(ev->selector.getElement().executeJs("this.focus();"));
@@ -272,11 +295,12 @@ public class TaggableTextArea<T> extends TextArea {
 		}));
 		return selector;
 	}
-	
-	/**
-	 * Replaces the mention-marker with the span that will contain a unique id, so it can be clicked
-	 * @param value
-	 */
+
+    /**
+     * Replaces the mention-marker with the span that will contain a unique id, so it can be clicked.
+     * 
+     * @param value the label of the tag to replace the placeholder
+     */
 	private void replaceTag(String value) {
 		this.getElement().executeJs(""
 				+ "const marker = this.querySelector(\"#mention-marker\");\n"
@@ -301,10 +325,12 @@ public class TaggableTextArea<T> extends TextArea {
 				+ "}", value).then((ev)->content.getElement().executeJs("this.parentNode.$server.updateContent(this.innerHTML);this.focus()"));
 	}
 	
-	/**
-	 * Converts the html content to plain text, but adds a br tag before the beginning of each div to preserve line breaks
-	 * @returns
-	 */
+    /**
+     * Converts the html content to plain text, but adds a br tag before the beginning of each div
+     * to preserve line breaks.
+     * 
+     * @returns the plain text content
+     */
 	public String getPlainValue() {
 		String htmlValue = getValue();
 		htmlValue = htmlValue.replaceAll("<div>", "<div>@@br@@");
@@ -327,5 +353,5 @@ public class TaggableTextArea<T> extends TextArea {
 		super.clear();
 		content.setText("");
 	}
-
+	
 }

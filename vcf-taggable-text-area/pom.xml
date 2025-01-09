@@ -8,7 +8,7 @@
     <artifactId>vcf-taggable-text-area</artifactId>
     <packaging>jar</packaging>
 
-    <name>Taggable Text Area Addon</name>
+    <name>Taggable Text Area</name>
 
     <version>1.0.0-SNAPSHOT</version>
     <inceptionYear>2024</inceptionYear>

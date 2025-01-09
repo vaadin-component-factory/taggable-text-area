@@ -22,7 +22,8 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 	
 	TextField filter = new TextField();
 	ListBox<T> listBox = new ListBox<>();
-	private SerializableBiFunction<T, String, Boolean> filterExpression = (item,filter) -> filter.contains(""+item); 
+	private SerializableBiFunction<T, String, Boolean> filterExpression = (item,filter) -> filter.contains(""+item);
+	private List<T> filteredItems; 
 	
 	public FilterListBoxSelector(List<T> items) {
 	    setClassName("taggable-textarea-filter-listbox-selector");
@@ -32,14 +33,12 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 		listBox.setSizeFull();
 		filter.setSizeFull();
 		filter.setValueChangeMode(ValueChangeMode.EAGER);
+		filteredItems = items;
 		filter.addValueChangeListener(e -> {
-			List<T> filteredItems = items.stream()
+			filteredItems = items.stream()
 					.filter(item -> getFilterExpression().apply(item, filter.getValue()))
 					.collect(Collectors.toList());
 			listBox.setItems(filteredItems);
-			if (!filteredItems.isEmpty()) {
-				listBox.setValue(filteredItems.get(0));
-			}
 		});
 		filter.getElement().executeJs("this.addEventListener('keydown', (event) => {"
 				+ "if (event.key === \"ArrowDown\") {\n"
@@ -47,7 +46,9 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 				+ " }\n"
 				+ "});",listBox.getElement());
 		filter.addKeyPressListener(Key.ENTER, ev->{
-			this.setValue(listBox.getValue());
+			if (!filteredItems.isEmpty()) {
+				this.setValue(filteredItems.iterator().next());
+			}
 		});
 		listBox.addValueChangeListener(ev->{
 			if (ev.isFromClient()) {

@@ -37,7 +37,7 @@ add the following dependency to your `pom.xml`:
 ```
 
 ## How to Use
-See examples on how to use at [demo](https://github.com/vaadin-component-factory/taggable-text-area/blob/initial-implementation/vcf-taggable-text-area-demo/src/main/java/org/vaadin/addons/componentfactory/demo/TaggableTextAreaDemoView.java).
+See examples on how to use at [demo](https://github.com/vaadin-component-factory/taggable-text-area/blob/main/vcf-taggable-text-area-demo/src/main/java/org/vaadin/addons/componentfactory/demo/TaggableTextAreaDemoView.java).
 
 ## Flow documentation
 Documentation for Vaadin Flow can be found in [Flow documentation](https://vaadin.com/docs/latest/flow).

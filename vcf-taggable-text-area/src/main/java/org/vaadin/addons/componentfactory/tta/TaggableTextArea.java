@@ -31,11 +31,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HasValueAndElement;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.function.SerializableFunction;
 
 /**
@@ -270,29 +266,16 @@ public class TaggableTextArea<T> extends TextArea {
 	
     /**
      * Creates the selector field that will be shown inside the popup to select the tag. By default
-     * it will return a listbox containing the items converted to string with the toString() method.
-     * It can be overwritten so it uses a different component for selecting the tags.
+     * it will return a @link {@link FilterListSelector} containing the items converted to string
+     * with the toString() method. It can be overwritten so it uses a different component for
+     * selecting the tags.
      * 
      * @return the selector component
      */
 	protected HasValueAndElement<?,T> createSelector() {
-		FilterListBoxSelector<T> selector = new FilterListBoxSelector<>(this.items);
+		FilterListSelector<T> selector = new FilterListSelector<>(this.items);
 		selector.getElement().executeJs("return;").then(ev->selector.getElement().executeJs("this.focus();"));
 		selector.setFilterExpression((item, filterText) -> item.toString().toLowerCase().contains(filterText.toLowerCase()));
-		selector.setRenderer(new ComponentRenderer<>(item -> {
-		    HorizontalLayout row = new HorizontalLayout();
-		    row.setAlignItems(FlexComponent.Alignment.CENTER);
-
-		    Span name = new Span(""+item);
-
-		    VerticalLayout column = new VerticalLayout(name);
-		    column.setPadding(false);
-		    column.setSpacing(false);
-
-		    row.add(column);
-		    row.getStyle().set("line-height", "var(--lumo-line-height-m)");
-		    return row;
-		}));
 		return selector;
 	}
 

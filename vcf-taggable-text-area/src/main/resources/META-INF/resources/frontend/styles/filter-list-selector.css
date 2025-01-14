@@ -1,0 +1,3 @@
+.taggable-textarea-filter-list-selector-list-column ::slotted(vaadin-grid-cell-content){
+	padding: 0;
+}

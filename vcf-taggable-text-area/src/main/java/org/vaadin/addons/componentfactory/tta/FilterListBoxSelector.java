@@ -19,44 +19,30 @@
  */
 package org.vaadin.addons.componentfactory.tta;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasStyle;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.customfield.CustomField;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.listbox.ListBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.selection.SingleSelect;
-import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.function.SerializableBiFunction;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A custom field component that combines a {@link TextField} with a {@link ListBox}.
  * 
  * <p>The {@code FilterListBoxSelector} allows to filter items in the list based on text input
  * and select an item either by pressing Enter or interacting with the {@link ListBox}.
+ * 
+ * <p>For a large amount of items use {@link FilterListSelector}.
  *
  * @param <T> the type of items displayed in the {@link ListBox}
  */
 @SuppressWarnings("serial")
 @CssImport("./styles/filter-listbox-selector.css")
-public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSelect<CustomField<T>, T>, HasStyle {
+public class FilterListBoxSelector<T> extends BaseFilterListSelector<T> {
 	
-	TextField filter = new TextField();
 	ListBox<T> listBox = new ListBox<>();
-	
-	/**
-     * Function defining the filter expression, used to match items against the filter query.
-     * Defaults to checking if the string representation of the item contains the filter text.
-     */
-	private SerializableBiFunction<T, String, Boolean> filterExpression = (item,filter) -> filter.contains(""+item);
-	
-	private List<T> filteredItems; 
 	
     /**
      * Constructs a {@code FilterListBoxSelector} with the given list of items.
@@ -66,13 +52,12 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 	public FilterListBoxSelector(List<T> items) {
 	    setClassName("taggable-textarea-filter-listbox-selector");
 		listBox.setItems(items);
-		filter.getElement().executeJs("return;").then(ev->filter.getElement().executeJs("this.focus();"));
 		listBox.getElement().getClassList().set("taggable-textarea-filter-listbox-selector-listbox", true);
 		listBox.setSizeFull();
-		filter.setSizeFull();
-		filter.setValueChangeMode(ValueChangeMode.EAGER);
-		filteredItems = items;
+		initFilter(items);
+		TextField filter = getFilter();
 		filter.addValueChangeListener(e -> {
+		    List<T> filteredItems = getFilteredItems();
 			filteredItems = items.stream()
 					.filter(item -> getFilterExpression().apply(item, filter.getValue()))
 					.collect(Collectors.toList());
@@ -83,11 +68,6 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 				+ "  $0.focus({ preventScroll: true });\n"
 				+ " }\n"
 				+ "});",listBox.getElement());
-		filter.addKeyPressListener(Key.ENTER, ev->{
-			if (!filteredItems.isEmpty()) {
-				this.setValue(filteredItems.iterator().next());
-			}
-		});
 		listBox.addValueChangeListener(ev->{
 			if (ev.isFromClient()) {
     			this.setValue(listBox.getValue());
@@ -126,23 +106,4 @@ public class FilterListBoxSelector<T> extends CustomField<T> implements SingleSe
 	protected void setPresentationValue(T newPresentationValue) {
 		listBox.setValue(newPresentationValue);
 	}
-
-    /**
-     * Returns the filter expression used to filter items.
-     *
-     * @return the filter expression
-     */
-	public SerializableBiFunction<T, String, Boolean> getFilterExpression() {
-		return filterExpression;
-	}
-
-    /**
-     * Sets the filter expression used to filter items.
-     *
-     * @param filterExpression the filter expression
-     */
-	public void setFilterExpression(SerializableBiFunction<T, String, Boolean> filterExpression) {
-		this.filterExpression = filterExpression;
-	}
-	
 }

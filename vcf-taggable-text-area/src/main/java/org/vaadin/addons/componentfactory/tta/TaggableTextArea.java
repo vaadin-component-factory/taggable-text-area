@@ -261,7 +261,7 @@ public class TaggableTextArea<T> extends TextArea {
      * @return the decorated HTML string
      */
 	protected String decorateWithSpan(String label) {
-		return "<span class=\"mention-highlight\" style=\"background-color:var(--lumo-contrast-10pct);color:var(--lumo-primary-text-color)\" id=\"span-" + UUID.randomUUID() + "\">" + label + "</span>";
+		return "<span class=\"mention-highlight\" contenteditable=false style=\"background-color:var(--lumo-contrast-10pct);color:var(--lumo-primary-text-color)\" id=\"span-" + UUID.randomUUID() + "\">" + label + "</span>";
 	}
 	
     /**

@@ -168,7 +168,7 @@ public class TaggableTextAreaDemoView extends DemoView {
             + "<div>facilisis tortor sollicitudin id. Etiam accumsan nisl mauris, eu semper nisl convallis facilisis. Jane Doe.</div>"
             + "<div>Sed varius volutpat aliquam. Suspendisse augue augue, maximus fermentum sagittis varius, commodo </div>"
             + "<div>id eros. Nunc vulputate justo vel sagittis ultrices. Quisque vehicula lorem in orci elementum interdum. </div>"
-            + "<div>In in sem quis dolor convallis aliquet sed fermentum mi. </div>");
+            + "<div>In in sem quis dolor convallis aliquet sed fermentum mi. Jane Doe </div>");
     tta.setTagPopupFor(item -> item.getName().equals("John Doe"));
 
     showUsedTags(tta.obtainUsedTags());

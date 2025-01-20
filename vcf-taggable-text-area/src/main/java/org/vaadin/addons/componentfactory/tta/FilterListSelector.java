@@ -32,6 +32,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import java.util.List;
 import java.util.Optional;
@@ -97,7 +98,7 @@ public class FilterListSelector<T> extends BaseFilterListSelector<T> {
     gridList.setSelectionMode(SelectionMode.SINGLE);
     gridList.setItems(items);
     gridList.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
-    gridList.setAllRowsVisible(items.size() < visibleItems);
+    setAllRowsVisibleIfItemCountIsLessThan(visibleItems);
     column = gridList.addColumn(this.itemRenderer);
     column.setClassNameGenerator(c -> "taggable-textarea-filter-list-selector-list-column");
 
@@ -110,7 +111,7 @@ public class FilterListSelector<T> extends BaseFilterListSelector<T> {
           items.stream().filter(item -> getFilterExpression().apply(item, filter.getValue()))
               .collect(Collectors.toList());
       gridList.setItems(filteredItems);
-      gridList.setAllRowsVisible(filteredItems.size() < visibleItems);
+      setAllRowsVisibleIfItemCountIsLessThan(visibleItems);
     });
     filter.getElement().executeJs(
         "this.addEventListener('keydown', (event) => {" +
@@ -169,10 +170,19 @@ public class FilterListSelector<T> extends BaseFilterListSelector<T> {
   }
 
   /**
-   * @param visibleItems the visibleItems to set
+   * Sets whether all rows should be visible based on the number of items.
+   * 
+   * <p>This method compares the number of items with the specified threshold 
+   * {@code visibleItems}. If the size is smaller than {@code visibleItems}, all rows in the 
+   * {@link Grid} are made visible; otherwise, the grid's default row visibility is retained.
+   * 
+   * @param visibleItems the maximum number of items below which all rows are displayed
    */
-  public void setVisibleItems(int visibleItems) {
-    this.visibleItems = visibleItems;
+  @SuppressWarnings("unchecked")
+  public void setAllRowsVisibleIfItemCountIsLessThan(int visibleItems) {
+    this.visibleItems = visibleItems;    
+    ListDataProvider<T> listDataProvider = ((ListDataProvider<T>)gridList.getDataProvider());
+    gridList.setAllRowsVisible(listDataProvider.getItems().size() < visibleItems);
   }
 
 }

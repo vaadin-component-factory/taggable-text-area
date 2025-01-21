@@ -321,20 +321,34 @@ public class TaggableTextArea<T> extends TextArea {
 		return result.replaceAll("@@br@@", "<br/>");
 	}
 	
-	@Override
-	public void setReadOnly(boolean readonly) {
-		super.setReadonly(readonly);
-		if (readonly) {
-			content.getElement().removeAttribute("contenteditable");
-		} else {
-			content.getElement().setAttribute("contenteditable", true);
-		}
-	}
+    @Override
+    public void setReadOnly(boolean readonly) {
+      super.setReadonly(readonly);
+      if (isEnabled()) {
+        if (readonly) {
+          content.getElement().removeAttribute("contenteditable");
+        } else {
+          content.getElement().setAttribute("contenteditable", true);
+        }
+      }
+    }
+    
+    @Override
+    public void setEnabled(boolean enabled) {
+      super.setEnabled(enabled);
+      if(!isReadOnly()) {
+        if(enabled) {
+          content.getElement().setAttribute("contenteditable", true);
+        } else {
+          content.getElement().removeAttribute("contenteditable");
+        }
+      }      
+    }
 	
 	@Override
 	public void clear() {
 		super.clear();
 		content.setText("");
 	}
-	
+
 }

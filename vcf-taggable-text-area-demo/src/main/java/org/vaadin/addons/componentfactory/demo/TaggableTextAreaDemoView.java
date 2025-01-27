@@ -122,7 +122,6 @@ public class TaggableTextAreaDemoView extends DemoView {
     birthDateField.setWidthFull();
     binder.forField(birthDateField).bind(User::getBirthDate, User::setBirthDate);
     birthDateColumn.setEditorComponent(birthDateField);
-    birthDateColumn.setEditorComponent(birthDateField);
 
     Button saveButton = new Button("Save", e -> {
       editor.save();

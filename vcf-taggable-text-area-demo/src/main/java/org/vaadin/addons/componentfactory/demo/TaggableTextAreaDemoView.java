@@ -127,7 +127,6 @@ public class TaggableTextAreaDemoView extends DemoView {
     Button saveButton = new Button("Save", e -> {
       editor.save();
       editor.closeEditor();
-      editor.getBinder().getBean().setNotes(notesField.getPlainValue());
       usersGrid.getDataCommunicator().refresh(editor.getBinder().getBean());
     });
     Button cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
@@ -159,7 +158,7 @@ public class TaggableTextAreaDemoView extends DemoView {
     tta.setLabel("Enter text, use @ to tag user");
     tta.addValueChangeListener(ev -> {
       updateMessage(message, "<b>Text Area Value:</b> <br>" + tta.getValue());
-      updateMessage(plainMessage, "<b>Text Area Plain Value:</b> <br>" + tta.getPlainValue());
+      updateMessage(plainMessage, "<b>Text Area HTML Value:</b> <br>" + tta.getHtmlValue());
     });
     tta.setValue(
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec rutrum diam sed sem interdum semper. "
@@ -252,7 +251,7 @@ public class TaggableTextAreaDemoView extends DemoView {
 
   private List<User> getPopupItems() {
     List<User> items = new ArrayList<User>();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10000; i++) {
       String name = "user" + (i + 1);
       items.add(new User(name, name + "@example.com", "", LocalDate.now(),
           RANDOM_USERS_PICTURES[(int) (Math.random() * 4)]));

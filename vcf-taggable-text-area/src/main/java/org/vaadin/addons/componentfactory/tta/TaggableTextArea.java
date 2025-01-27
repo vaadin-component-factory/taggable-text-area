@@ -312,13 +312,23 @@ public class TaggableTextArea<T> extends TextArea {
      * Converts the html content to plain text, but adds a br tag before the beginning of each div
      * to preserve line breaks.
      * 
-     * @returns the plain text content
+     * @returns the plain value 
      */
-	public String getPlainValue() {
-		String htmlValue = getValue();
-		htmlValue = htmlValue.replaceAll("<div>", "<div>@@br@@");
-		String result = Jsoup.parse(htmlValue).text();
-		return result.replaceAll("@@br@@", "<br/>");
+	@Override
+	public String getValue() {
+  	    String htmlValue = super.getValue();
+        htmlValue = htmlValue.replaceAll("<div>", "<div>@@br@@");
+        String result = Jsoup.parse(htmlValue).text();
+        return result.replaceAll("@@br@@", "<br/>");
+	}
+	
+	/**
+	 * Returns the HTML value of the component.
+	 * 
+	 * @return the HTML value
+	 */
+	public String getHtmlValue() {
+		return super.getValue();
 	}
 	
     @Override

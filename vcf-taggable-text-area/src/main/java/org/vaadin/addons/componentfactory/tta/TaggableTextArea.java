@@ -361,4 +361,28 @@ public class TaggableTextArea<T> extends TextArea {
 		content.setText("");
 	}
 
+    /**
+     * Gets the function used to generate labels for tags.
+     * The label generator function takes an item of type T and returns a String representation.
+     * By default, the label generator converts the item to a String using its `toString()` method.
+     *
+     * @return the label generator function
+     */
+    public SerializableFunction<T, String> getLabelGenerator() {
+      return labelGenerator;
+    }
+
+    /**
+     * Sets the function used to generate labels for tags.
+     * This function determines how each item of type T is represented as a label in the text area.
+     *
+     * @param labelGenerator the label generator function to set; must not be null
+     * @throws NullPointerException if the provided label generator is null
+     */
+    public void setLabelGenerator(SerializableFunction<T, String> labelGenerator) {
+      if (labelGenerator == null) {
+        throw new NullPointerException("Label generator cannot be null");
+      }
+      this.labelGenerator = labelGenerator;
+    }
 }

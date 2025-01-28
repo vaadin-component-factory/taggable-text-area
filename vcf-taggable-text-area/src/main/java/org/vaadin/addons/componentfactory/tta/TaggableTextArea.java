@@ -19,15 +19,6 @@
  */
 package org.vaadin.addons.componentfactory.tta;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.jsoup.Jsoup;
-
 import com.vaadin.componentfactory.Popup;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
@@ -36,6 +27,14 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.function.SerializableFunction;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.jsoup.Jsoup;
 
 /**
  * A text area component that supports tagging functionality. Users can insert tags
@@ -182,7 +181,6 @@ public class TaggableTextArea<T> extends TextArea {
 	
 	@Override
 	public void setValue(String value) {
-		super.setValue(value);
 		processAndSetValue(value);
 	}
 

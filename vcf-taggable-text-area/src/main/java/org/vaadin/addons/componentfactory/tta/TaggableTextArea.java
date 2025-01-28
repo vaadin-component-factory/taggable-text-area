@@ -20,9 +20,12 @@
 package org.vaadin.addons.componentfactory.tta;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 
 import com.vaadin.componentfactory.Popup;
@@ -114,23 +117,58 @@ public class TaggableTextArea<T> extends TextArea {
 
     /**
      * Process the value finding existing tags and decorates them with the span that will trigger
-     * the tag popup
+     * the tag popup.
+     * 
+     * To ensure smooth processing, the method first replaces the identified tags in the text with
+     * temporary placeholders. These placeholders are then substituted with the corresponding
+     * decorated spans, maintaining the integrity of the text structure.
      * 
      * @param value value the text content to process
      */
-	void processAndSetValue(String value) {
-		for (T item : items) {
-			String itemLabel = labelGenerator.apply(item);
-			int index = value.indexOf(itemLabel);
-			while (index >= 0) {
-				String decoratedLabel = decorateWithSpan(itemLabel);
-				value = value.substring(0, index) + decoratedLabel + value.substring(index + itemLabel.length());
-				index = value.indexOf(itemLabel, index + decoratedLabel.length());
-			}
-		}
-		super.setValue(value);
-		content.getElement().executeJs("this.innerHTML=$0", value);
-	}
+    void processAndSetValue(String value) {
+      // Define a unique prefix to mark placeholders
+      String prefix = "@";
+      while (value.contains(prefix)) {
+        prefix = prefix + "@";
+      }
+
+      // List to hold the decorated tags
+      List<String> tags = new ArrayList<String>();
+
+      // Generate a sorted list of labels (longest first) to avoid overlapping matches
+      List<String> orderedLabels = items.stream().map(labelGenerator)
+          .sorted(Comparator.comparing(String::length).reversed()).collect(Collectors.toList());
+
+      for (String label : orderedLabels) {
+        // Regex to match the tag as a whole word, surrounded by word boundaries
+        String regex = "\\b" + Pattern.quote(label) + "\\b";
+        Matcher matcher = Pattern.compile(regex).matcher(value);
+
+        while (matcher.find()) {
+            int start = matcher.start();
+            int end = matcher.end();
+
+            // Add the decorated span for the tag
+            tags.add(decorateWithSpan(label));
+
+            // Replace the tag in the text with a placeholder
+            String atChar = prefix + (tags.size() - 1);
+            value = value.substring(0, start) + atChar + value.substring(end);
+
+            // Reset matcher with updated value
+            matcher = Pattern.compile(regex).matcher(value);
+        }
+      }
+      
+      // Replace placeholders with their corresponding decorated spans 
+      for (int i = 0; i < tags.size(); i++) {
+          String placeholder = prefix + i;
+          value = value.replace(placeholder, tags.get(i));
+      }
+   
+      super.setValue(value);
+      content.getElement().executeJs("this.innerHTML=$0", value);
+    }
 	
 	/**
 	 * Updates the value of the component after the span has been created from the client side.

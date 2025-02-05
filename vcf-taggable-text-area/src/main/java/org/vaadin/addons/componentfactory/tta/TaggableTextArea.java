@@ -51,6 +51,7 @@ public class TaggableTextArea<T> extends TextArea {
 	protected List<T> items = new ArrayList<>();
 	private SerializableFunction<T,String> labelGenerator = item->""+item;
 	private SerializableFunction<T,Boolean> tagPopupVisibilityFunction = (item)->true;
+	private boolean wordMatching;
 	
     /**
      * Constructs a new TaggableTextArea component with a list of items that can be used as tags.
@@ -139,8 +140,12 @@ public class TaggableTextArea<T> extends TextArea {
           .sorted(Comparator.comparing(String::length).reversed()).collect(Collectors.toList());
 
       for (String label : orderedLabels) {
-        // Regex to match the tag as a whole word, surrounded by word boundaries
-        String regex = "\\b" + Pattern.quote(label) + "\\b";
+        String regex;
+        if (wordMatching) {
+        	regex = "\\b" + Pattern.quote(label) + "\\b";
+        } else {
+        	regex = Pattern.quote(label);
+        }
         Matcher matcher = Pattern.compile(regex).matcher(value);
 
         while (matcher.find()) {
@@ -421,4 +426,19 @@ public class TaggableTextArea<T> extends TextArea {
       }
       this.labelGenerator = labelGenerator;
     }
+    
+    /**
+     * Enables or disables word matching
+     * @param matching
+     */
+    public void setWordMatching(boolean matching) {
+    	this.wordMatching  = matching;
+    }
+    
+    /**
+     * @return
+     */
+    public boolean isWordMatching() {
+		return wordMatching;
+	}
 }

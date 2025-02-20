@@ -19,14 +19,6 @@
  */
 package org.vaadin.addons.componentfactory.tta;
 
-import com.vaadin.componentfactory.Popup;
-import com.vaadin.flow.component.ClientCallable;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasValueAndElement;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.function.SerializableFunction;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,7 +26,20 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.jsoup.Jsoup;
+
+import com.vaadin.componentfactory.Popup;
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.HasValueAndElement;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.function.SerializableFunction;
+import com.vaadin.flow.shared.Registration;
 
 /**
  * A text area component that supports tagging functionality. Users can insert tags
@@ -441,4 +446,16 @@ public class TaggableTextArea<T> extends TextArea {
     public boolean isWordMatching() {
 		return wordMatching;
 	}
+    
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+    public Registration addFocusListener(ComponentEventListener<FocusEvent<TextArea>> listener) {
+    	return ComponentUtil.addListener(this.content, (Class)FocusEvent.class, ev->listener.onComponentEvent(new FocusEvent<>(this, ev.isFromClient())));
+    }
+    
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+    public Registration addBlurListener(ComponentEventListener<BlurEvent<TextArea>> listener) {
+    	return ComponentUtil.addListener(this.content, (Class)BlurEvent.class, ev->listener.onComponentEvent(new BlurEvent<>(this, ev.isFromClient())));
+    }
 }

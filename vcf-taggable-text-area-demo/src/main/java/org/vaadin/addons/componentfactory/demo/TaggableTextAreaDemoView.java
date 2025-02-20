@@ -227,6 +227,8 @@ public class TaggableTextAreaDemoView extends DemoView {
       
     };
     tta.setWidthFull();
+    tta.addFocusListener(ev->Notification.show("Focus gained: " + ev.getSource().getValue()));
+    tta.addBlurListener(ev->Notification.show("Focus lost: " + ev.getSource().getValue()));
     return tta;
   }
   

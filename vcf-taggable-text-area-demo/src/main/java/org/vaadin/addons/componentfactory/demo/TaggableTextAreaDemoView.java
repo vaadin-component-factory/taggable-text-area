@@ -169,10 +169,10 @@ public class TaggableTextAreaDemoView extends DemoView {
             + "<div>In in sem quis dolor convallis aliquet sed fermentum mi. Jane Doe </div>");
     tta.setTagPopupFor(item -> item.getName().equals("John Doe"));
 
-    showUsedTags(tta.obtainUsedTags());
+    showUsedTags(tta.obtainUsedTags(), tta);
     Checkbox cb = new Checkbox("Readonly");
     cb.addValueChangeListener(ev -> tta.setReadOnly(cb.getValue()));
-    Button showUsedTags = new Button("Show used tags", ev -> showUsedTags(tta.obtainUsedTags()));
+    Button showUsedTags = new Button("Show used tags", ev -> showUsedTags(tta.obtainUsedTags(),tta));
     // end-source-example
 
     addCard("Simple example for TaggableTextArea", tta, message, plainMessage,
@@ -222,7 +222,7 @@ public class TaggableTextAreaDemoView extends DemoView {
 
       @Override
       protected AbstractField<?, User> createSelector() {
-        return TaggableTextAreaDemoView.createGridSelector(this.items);
+        return TaggableTextAreaDemoView.createGridSelector(this.items,this);
       }
       
     };
@@ -239,9 +239,11 @@ public class TaggableTextAreaDemoView extends DemoView {
     });
   }
   
-  private void showUsedTags(List<User> users) {
+  private void showUsedTags(List<User> users, TaggableTextArea<User> tta) {
     Notification.show("Users: " + users.stream()
         .map(item -> item.getName() + ", " + item.getEmail()).collect(Collectors.joining(",")));
+    Notification
+        .show("Popup is " + (tta.isPopupOpened()?"":"not") + " opened.");
   }
   
   private static final String[] RANDOM_USERS_PICTURES =
@@ -260,15 +262,15 @@ public class TaggableTextAreaDemoView extends DemoView {
     return items;
   }
 
-  protected static AbstractField<?, User> createGridSelector(List<User> items) {
-    FilterListSelector<User> selector = new FilterListSelector<>(items, createItemRenderer());
+  protected static AbstractField<?, User> createGridSelector(List<User> items, TaggableTextArea<User> taggableTextArea) {
+    FilterListSelector<User> selector = new FilterListSelector<>(items, createItemRenderer(taggableTextArea));
     selector.setWidth("200px");
     selector.setFilterExpression(
         (item, filter) -> item.getName().toLowerCase().contains(filter.toLowerCase()));
     return selector;
   }
 
-  private static ComponentRenderer<Component, User> createItemRenderer() {
+  private static ComponentRenderer<Component, User> createItemRenderer(TaggableTextArea<User> taggableTextArea) {
     return new ComponentRenderer<Component, User>(user -> {
       HorizontalLayout row = new HorizontalLayout();
       row.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -278,6 +280,10 @@ public class TaggableTextAreaDemoView extends DemoView {
       avatar.setImage(user.getPictureUrl());
 
       Span name = new Span(user.getName());
+      name.addClickListener(ev->{
+         Notification
+            .show("Popup is " + (taggableTextArea.isPopupOpened()?"":"not") + " opened.");
+      });
       Span profession = new Span(user.getEmail());
       profession.getStyle().set("color", "var(--lumo-secondary-text-color)").set("font-size",
           "var(--lumo-font-size-s)");

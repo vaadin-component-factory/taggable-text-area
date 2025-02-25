@@ -57,6 +57,7 @@ public class TaggableTextArea<T> extends TextArea {
 	private SerializableFunction<T,String> labelGenerator = item->""+item;
 	private SerializableFunction<T,Boolean> tagPopupVisibilityFunction = (item)->true;
 	private boolean wordMatching;
+	private Popup popup;
 	
     /**
      * Constructs a new TaggableTextArea component with a list of items that can be used as tags.
@@ -199,18 +200,30 @@ public class TaggableTextArea<T> extends TextArea {
      */
 	@ClientCallable
 	void showPopup() {
-		Popup popup = new Popup();
+		popup = new Popup();
 		popup.setFor("mention-marker");
 		HasValueAndElement<?,T> selector = createSelector();
 		popup.add(selector.getElement().getComponent().get());
 		selector.addValueChangeListener(ev->{
 			TaggableTextArea.this.replaceTag(labelGenerator.apply(ev.getValue()));
 			popup.setOpened(false);
-			popup.getElement().executeJs("return;").then(ev2->popup.getElement().removeFromParent());
+			popup.getElement().executeJs("return;").then(ev2->{
+				popup.getElement().removeFromParent();
+				popup=null;
+			});
 		});
 		popup.setOpened(true);
 		this.getElement().appendChild(popup.getElement());
 		popup.setCloseOnClick(true);
+	}
+	
+	/**
+	 * Returns the open state of the tag search popup
+	 * 
+	 * @return true if the popup is opened, false otherwhise
+	 */
+	public boolean isPopupOpened() {
+		return popup != null && popup.isOpened();
 	}
 
 	/**

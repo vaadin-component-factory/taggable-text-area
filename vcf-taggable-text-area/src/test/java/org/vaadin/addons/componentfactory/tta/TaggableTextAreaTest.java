@@ -20,7 +20,7 @@
 package org.vaadin.addons.componentfactory.tta;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 
 import org.junit.After;
@@ -48,13 +48,12 @@ public class TaggableTextAreaTest {
     }
 
     @Test
-    public void paperInput_basicCases() {
-        TaggableTextArea<String> tta = new TaggableTextArea<>(Arrays.asList(""));
-
-        assertEquals("", tta.getValue());
-
-        tta.setValue("test");
-        assertEquals("test", tta.getElement().getProperty("value"));
+    public void taggableTextArea_basicCases() {
+        TaggableTextArea<String> tta = new TaggableTextArea<>(Arrays.asList("test"));
+        tta.setValue("This is a test.");
+        assertEquals("This is a test.", tta.getValue());
+        String htmlValue = tta.getHtmlValue();
+        assertTrue(htmlValue.startsWith("This is a <span"));
+        assertTrue(htmlValue.contains(">test</span>."));
     }
-
 }

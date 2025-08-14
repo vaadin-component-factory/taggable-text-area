@@ -9,7 +9,7 @@
     <packaging>war</packaging>
     <name>Taggable Text Area Demo</name>
 
-    <version>2.2.2-SNAPSHOT</version>
+    <version>2.2.2</version>
     <inceptionYear>2024</inceptionYear>
     <organization>
         <name>Vaadin Ltd</name>

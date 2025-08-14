@@ -91,6 +91,7 @@ public class TaggableTextArea<T> extends TextArea {
 				+ "    range.insertNode(marker);\n"
 				+ "    this.parentNode.$server.updateContent(this.innerHTML);\n"
 				+ "    this.parentNode.$server.showPopup();\n"
+				+ "    event.preventDefault();\n"
 				+ "  }\n"
 				+ "});");
 		content.getElement().executeJs(

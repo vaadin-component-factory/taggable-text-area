@@ -71,6 +71,9 @@ public class TaggableTextArea<T> extends TextArea {
 		content.getStyle().set("overflow", "auto");
 		content.setSizeFull();
 		this.getElement().appendChild(content.getElement());
+		
+		initLengthEnforcement();
+		
 		content.getElement().executeJs("this.addEventListener(\"input\", () => {"
 				+ "const content = this.innerHTML;"
 				+ "this.parentNode.$server.updateContent(content);"
@@ -191,6 +194,16 @@ public class TaggableTextArea<T> extends TextArea {
 	    super.setValue(htmlContent);
 	}
 	
+	@Override
+	public void setInvalid(boolean invalid) {
+		int max = getMaxLength();
+		if (max > 0 && getPlainValue().length() <= max) {
+			super.setInvalid(false);
+		} else {
+			super.setInvalid(invalid);
+		}
+	}
+
 	@Override
 	public void setValue(String value) {
 		processAndSetValue(value);
@@ -345,6 +358,26 @@ public class TaggableTextArea<T> extends TextArea {
      * @param value the label of the tag to replace the placeholder
      */
 	private void replaceTag(String value) {
+		int max = getMaxLength();
+		if (max > 0) {
+			// Get current text
+			String currentText = getValue();
+
+			// Normalize length: replace <br/> with \n to match DB character counting.
+			// Subtract 1 to account for the '@' marker currently in the content.
+			int currentLenWithoutMarker = currentText.replace("<br/>", "\n").length() - 1;
+
+			// If the new name pushes the total over the limit
+			if (currentLenWithoutMarker + value.length() > max) {
+				// Remove the '@' marker and exit without adding the name
+				this.getElement().executeJs(
+						"const marker = this.querySelector('#mention-marker');" +
+								"if (marker) marker.remove();");
+				return;
+			}
+		}
+
+		// If within limits, proceed with normal insertion logic
 		this.getElement().executeJs(""
 				+ "const marker = this.querySelector(\"#mention-marker\");\n"
 				+ "if (marker) {\n"
@@ -355,7 +388,7 @@ public class TaggableTextArea<T> extends TextArea {
 				+ " span.style.backgroundColor = \"var(--lumo-contrast-10pct)\";\n"
 				+ " span.style.color = \"var(--lumo-primary-text-color)\";\n"
 				+ " marker.replaceWith(span);\n"
-				+ " const cleanTextNode = document.createElement(\"div\");\n"
+				+ " const cleanTextNode = document.createElement(\"span\");\n"
 				+ " cleanTextNode.innerHTML = '&nbsp;';\n"
 				+ " cleanTextNode.style.display = \"inline\";"
 				+ " span.after(cleanTextNode);"
@@ -376,17 +409,29 @@ public class TaggableTextArea<T> extends TextArea {
      */
 	@Override
 	public String getValue() {
-  	    String htmlValue = super.getValue();
-  	    htmlValue = htmlValue.replaceFirst("<div>", "@@br@@");
-  	    htmlValue = htmlValue.replaceAll("<div><span class=\"mention-highlight\"", "@@br@@<span class=\"mention-highlight\"");
-  	    htmlValue = htmlValue.replaceAll("<br></div><div><div style=\"display: inline;\">", "@@br@@");
-        htmlValue = htmlValue.replaceAll("<div><div style=\"display: inline;\">", "@@br@@");
-  	    htmlValue = htmlValue.replaceAll("<br/>", "@@br@@");
-        htmlValue = htmlValue.replaceAll("<br>", "@@br@@");
-        String result = Jsoup.parse(htmlValue).text();
-        return result.replaceAll("@@br@@", "<br/>");
+		String htmlValue = super.getValue();
+		if (htmlValue == null || htmlValue.isEmpty()) {
+			return "";
+		}
+		
+		htmlValue = htmlValue.replaceFirst("<div>", "@@br@@");
+		htmlValue = htmlValue.replaceAll("<div><span class=\"mention-highlight\"", "@@br@@<span class=\"mention-highlight\"");
+		htmlValue = htmlValue.replaceAll("<br></div><div><div style=\"display: inline;\">", "@@br@@");
+		htmlValue = htmlValue.replaceAll("<div><div style=\"display: inline;\">", "@@br@@");
+		htmlValue = htmlValue.replaceAll("<br/>", "@@br@@");
+		htmlValue = htmlValue.replaceAll("<br>", "@@br@@");
+		String result = Jsoup.parse(htmlValue).text();
+		return result.replaceAll("@@br@@", "<br/>");
 	}
-	
+
+	private String getPlainValue() {
+		String result = this.getValue();
+		if (result == null || result.isEmpty()) {
+			return "";
+		}
+		return result.replaceAll("<br/>", "\n");
+	}
+
 	/**
 	 * Returns the HTML value of the component.
 	 * 
@@ -477,4 +522,56 @@ public class TaggableTextArea<T> extends TextArea {
     public Registration addBlurListener(ComponentEventListener<BlurEvent<TextArea>> listener) {
     	return ComponentUtil.addListener(this.content, (Class)BlurEvent.class, ev->listener.onComponentEvent(new BlurEvent<>(this, ev.isFromClient())));
     }
+	
+	@Override
+	public void setMaxLength(int maxLength) {
+	    super.setMaxLength(maxLength);
+	    // This allows the JS listener to read the current limit
+	    this.getElement().setProperty("maxlength", maxLength);
+	}
+
+    /**
+     * Enforces character limits (max-length). 
+     * <p>
+     * Key features:
+     * <ul>
+     * <li><b>Input Blocking:</b> Prevents typing once the limit is reached, excluding navigation
+     * and meta keys.</li>
+     * <li><b>Smart Truncation:</b> Intercepts paste events to automatically truncate text that
+     * exceeds the remaining space.</li>
+     * <li><b>Consistency:</b> Normalizes line breaks to ensure client-side and server-side counts
+     * match.</li>
+     * </ul>
+     */
+	private void initLengthEnforcement() {
+		content.getElement().executeJs(
+				"const el = this; " +
+						"const getLen = () => el.textContent.replace(/\\r?\\n/g, '\\n').length; " +
+						"el.addEventListener('keydown', (ev) => { " +
+						"  const max = el.parentNode.maxlength; " +
+						"  if (!max || max <= 0) return; " +
+						"  const isMeta = ev.ctrlKey || ev.metaKey || ev.altKey; " +
+						"  const isNav = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab'].includes(ev.key); "
+						+
+						"  if (getLen() >= max && !isMeta && !isNav && (ev.key.length === 1 || ev.key === 'Enter')) { "
+						+
+						"    ev.preventDefault(); " +
+						"  } " +
+						"}); " +
+						"el.addEventListener('paste', (ev) => { " +
+						"  const max = el.parentNode.maxlength; " +
+						"  if (!max || max <= 0) return; " +
+						"  const pasted = (ev.clipboardData || window.clipboardData).getData('text'); " +
+						"  const current = getLen(); " +
+						"  if (current + pasted.length > max) { " +
+						"    ev.preventDefault(); " +
+						"    const space = max - current; " +
+						"    if (space > 0) {"
+						+ " const allLineBreaks = pasted.match(/\\r\\n|\\r|\\n/g); "
+						+ " const allLineBreaksCount = allLineBreaks ? allLineBreaks.length : 0; "
+						+ " const substract = space + allLineBreaksCount; "
+						+ " document.execCommand('insertText', false, pasted.substring(0, substract)); }" +
+						"  } " +
+						"});");
+	}
 }

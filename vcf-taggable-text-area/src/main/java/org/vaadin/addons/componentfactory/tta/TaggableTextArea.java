@@ -359,28 +359,49 @@ public class TaggableTextArea<T> extends TextArea {
      */
 	private void replaceTag(String value) {
 		int max = getMaxLength();
-		if (max > 0) {
-			// Get current text
-			String currentText = getValue();
+		
+		// Get current text
+        String currentText = getValue();
+        String htmlContent = (String) this.getElement().getProperty("innerHTML");
+  
+        // Only subtract if the actual marker element exists in HTML
+        boolean hasMarker = htmlContent != null && htmlContent.contains("id=\"mention-marker\"");
+        int charsRemoving = hasMarker ? 1 : 0;
+  
+        // Check for leading space
+        int atIndex = currentText.lastIndexOf("@");
+        boolean needsLeadingSpace = false;
+        if (atIndex > 0) {
+            char charBefore = currentText.charAt(atIndex - 1);
+            // If not a space or newline, add one
+            if (charBefore != ' ' && charBefore != '\n' && charBefore != '\r') {
+                needsLeadingSpace = true;
+            }
+        }
+		
+		if (max > 0) {		  
+		  // Normalize length for the check
+          int currentLenght = currentText.replace("<br/>", "\n").length();
+          
+          // Math: current - marker + name + trailing space (1) + leading space (0 or 1)
+          int projectedLength = (currentLenght - charsRemoving) + value.length() + 1 + (needsLeadingSpace ? 1 : 0);
 
-			// Normalize length: replace <br/> with \n to match DB character counting.
-			// Subtract 1 to account for the '@' marker currently in the content.
-			int currentLenWithoutMarker = currentText.replace("<br/>", "\n").length() - 1;
-
-			// If the new name pushes the total over the limit
-			if (currentLenWithoutMarker + value.length() > max) {
-				// Remove the '@' marker and exit without adding the name
-				this.getElement().executeJs(
-						"const marker = this.querySelector('#mention-marker');" +
-								"if (marker) marker.remove();");
-				return;
-			}
+          if (projectedLength > max) {
+              this.getElement().executeJs(
+                  "const marker = this.querySelector('#mention-marker');" +
+                  "if (marker) marker.remove();"
+              );
+              return;
+          }
 		}
 
 		// If within limits, proceed with normal insertion logic
 		this.getElement().executeJs(""
 				+ "const marker = this.querySelector(\"#mention-marker\");\n"
 				+ "if (marker) {\n"
+				+ "  if ($1) {\n" // Add leading space if needed
+                + "    marker.before(document.createTextNode(\" \"));\n"
+                + "  }\n"
 				+ " const span = document.createElement(\"span\");\n"
 				+ " span.textContent = $0;\n"
 				+ " span.className = \"mention-highlight\";\n"
@@ -398,7 +419,7 @@ public class TaggableTextArea<T> extends TextArea {
 				+ " const selection = window.getSelection();\n"
 				+ " selection.removeAllRanges();\n"
 				+ " selection.addRange(range);\n"
-				+ "}", value).then((ev)->content.getElement().executeJs("this.parentNode.$server.updateContent(this.innerHTML);this.focus()"));
+				+ "}", value, needsLeadingSpace).then((ev)->content.getElement().executeJs("this.parentNode.$server.updateContent(this.innerHTML);this.focus()"));
 	}
 	
     /**

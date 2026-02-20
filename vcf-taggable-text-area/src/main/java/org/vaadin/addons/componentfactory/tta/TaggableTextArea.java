@@ -87,6 +87,12 @@ public class TaggableTextArea<T> extends TextArea {
 		content.getElement().executeJs(
 				"this.addEventListener(\"keydown\", (event) => {\n"
 				+ "  if (event.key === \"@\") {\n"
+				+ "    const max = this.parentNode.maxlength;\n"
+				+ "    const getLen = () => this.textContent.replace(/\\r?\\n/g, '\\n').length;\n"
+				+ "    if (max && max > 0 && getLen() >= max) {\n"
+				+ "      event.preventDefault();\n"
+				+ "      return;\n"
+				+ "    }\n"
 				+ "    const range = window.getSelection().getRangeAt(0);\n"
 				+ "    const marker = document.createElement(\"span\");\n"
 				+ "    marker.id = \"mention-marker\";\n"

@@ -439,6 +439,7 @@ public class TaggableTextArea<T> extends TextArea {
 		htmlValue = htmlValue.replaceAll("<div><span class=\"mention-highlight\"", "@@br@@<span class=\"mention-highlight\"");
 		htmlValue = htmlValue.replaceAll("<br></div><div><div style=\"display: inline;\">", "@@br@@");
 		htmlValue = htmlValue.replaceAll("<div><div style=\"display: inline;\">", "@@br@@");
+		htmlValue = htmlValue.replaceAll("<div>", "@@br@@");
 		htmlValue = htmlValue.replaceAll("<br/>", "@@br@@");
 		htmlValue = htmlValue.replaceAll("<br>", "@@br@@");
 		String result = Jsoup.parse(htmlValue).text();

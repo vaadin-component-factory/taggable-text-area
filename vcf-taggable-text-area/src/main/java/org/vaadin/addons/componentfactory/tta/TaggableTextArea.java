@@ -591,9 +591,15 @@ public class TaggableTextArea<T> extends TextArea {
 						"  if (!max || max <= 0) return; " +
 						"  const pasted = (ev.clipboardData || window.clipboardData).getData('text'); " +
 						"  const current = getLen(); " +
-						"  if (current + pasted.length > max) { " +
+						"  const selection = window.getSelection(); " +
+						"  let selectedLength = 0; " +
+						"  if (!selection.isCollapsed) { " +
+						"    selectedLength = selection.toString().length; " +
+						"  } " +
+						"  const actualCurrent = current - selectedLength; " +
+						"  if (actualCurrent + pasted.length > max) { " +
 						"    ev.preventDefault(); " +
-						"    const space = max - current; " +
+						"    const space = max - actualCurrent; " +
 						"    if (space > 0) {"
 						+ " const allLineBreaks = pasted.match(/\\r\\n|\\r|\\n/g); "
 						+ " const allLineBreaksCount = allLineBreaks ? allLineBreaks.length : 0; "
